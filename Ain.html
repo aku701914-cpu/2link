@@ -1,0 +1,2153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <style>
+        :root {
+            --primary-color: #1DB954;
+            --secondary-color: #282828;
+            --background-color: #121212;
+            --text-color: #FFFFFF;
+            --text-secondary: #B3B3B3;
+            --danger-color: #FF4D4D;
+            --warning-color: #FFA500;
+            --edit-color: #4A90E2;
+            --success-color: #1DB954;
+            --glow-color-light: rgba(29, 185, 84, 0.7);
+            --glow-color-dark: rgba(29, 185, 84, 0.3);
+            --soft-glow: 0 0 10px var(--glow-color-light), 0 0 5px var(--glow-color-dark);
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        #app {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--secondary-color);
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-shadow: 0 0 5px rgba(29, 185, 84, 0.5);
+        }
+
+        .content-tab {
+            background-color: var(--secondary-color);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+            color: var(--text-color);
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-secondary);
+            font-weight: 700;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            background-color: #333;
+            color: var(--text-color);
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 5px rgba(29, 185, 84, 0.5);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: var(--background-color);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            margin: 5px;
+        }
+
+        .btn-primary:hover {
+            background-color: #1ed760;
+            box-shadow: 0 0 15px var(--glow-color-dark);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background-color 0.2s;
+            margin: 5px;
+        }
+
+        .btn-danger:hover {
+            background-color: #E04343;
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: var(--background-color);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background-color 0.2s;
+            margin: 5px;
+        }
+
+        .btn-warning:hover {
+            background-color: #FF8C00;
+        }
+
+        .user-item {
+            background: #1e1e1e;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .user-info {
+            flex-grow: 1;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 5px 8px;
+            border-radius: 4px;
+            transition: color 0.2s, background-color 0.2s;
+        }
+
+        .action-btn:hover {
+            color: var(--text-color);
+            background-color: #383838;
+        }
+
+        .edit-btn:hover {
+            color: var(--edit-color);
+        }
+
+        .delete-btn:hover {
+            color: var(--danger-color);
+        }
+
+        .copy-btn:hover {
+            color: var(--primary-color);
+        }
+
+        .json-preview {
+            background: #1e1e1e;
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .edit-form {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 1px solid var(--edit-color);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 480px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+
+        .spinner {
+            border: 5px solid #333;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: var(--text-color);
+            text-align: center;
+            border-radius: 2px;
+            padding: 16px;
+            position: fixed;
+            z-index: 3001;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.5s, visibility 0s;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .search-box {
+            margin-bottom: 15px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            background-color: #333;
+            color: var(--text-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 3em;
+            margin-bottom: 10px;
+            color: #444;
+        }
+
+        .user-save-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.7em;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background: #333;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .user-saving {
+            color: var(--warning-color);
+            opacity: 1;
+        }
+
+        .user-saved {
+            color: var(--success-color);
+            opacity: 1;
+        }
+
+        /* New Header Buttons */
+        .header-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .header-btn {
+            background-color: var(--primary-color);
+            color: var(--background-color);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+
+        .header-btn:hover {
+            background-color: #1ed760;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(29, 185, 84, 0.4);
+        }
+
+        .header-btn.system {
+            background-color: var(--edit-color);
+        }
+
+        .header-btn.system:hover {
+            background-color: #357ABD;
+        }
+
+        .header-btn.settings {
+            background-color: var(--warning-color);
+        }
+
+        .header-btn.settings:hover {
+            background-color: #FF8C00;
+        }
+
+        .header-btn.auto-on {
+            background-color: var(--success-color);
+        }
+
+        .header-btn.auto-on:hover {
+            background-color: #1DB954;
+        }
+
+        .header-btn.auto-off {
+            background-color: var(--danger-color);
+        }
+
+        .header-btn.auto-off:hover {
+            background-color: #E04343;
+        }
+
+        .auto-save-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--secondary-color);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+            border: 1px solid var(--primary-color);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .auto-save-indicator.show {
+            opacity: 1;
+        }
+
+        .auto-save-saving {
+            color: var(--warning-color);
+        }
+
+        .auto-save-saved {
+            color: var(--success-color);
+        }
+
+        /* JSON Find Feature Styles */
+        .json-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .find-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .find-input {
+            width: 180px;
+            padding: 8px 12px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            background-color: #333;
+            color: var(--text-color);
+            font-size: 0.9em;
+        }
+
+        .find-buttons {
+            display: flex;
+            gap: 4px;
+        }
+
+        .find-btn {
+            background-color: #333;
+            color: var(--primary-color);
+            border: 1px solid #444;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .find-btn:hover {
+            background-color: #444;
+        }
+
+        .find-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .highlight {
+            background-color: rgba(29, 185, 84, 0.3);
+            border-radius: 2px;
+            padding: 1px 2px;
+        }
+
+        .current-highlight {
+            background-color: rgba(29, 185, 84, 0.7);
+            border-radius: 2px;
+            padding: 1px 2px;
+            box-shadow: 0 0 3px var(--primary-color);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-content {
+            background-color: var(--secondary-color);
+            margin: auto;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        .close {
+            color: var(--text-secondary);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: var(--text-color);
+        }
+
+        .password-display {
+            font-family: 'Courier New', monospace;
+            background: #333;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #444;
+        }
+
+        /* New styles for password generator */
+        .password-generator {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid #444;
+        }
+
+        .password-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .password-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .password-option input[type="checkbox"] {
+            width: auto;
+        }
+
+        .password-option label {
+            margin-bottom: 0;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
+        .password-preview {
+            background: #333;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            margin: 10px 0;
+            border: 1px solid #555;
+            font-size: 1.2em;
+            letter-spacing: 2px;
+            color: var(--text-color);
+            min-height: 20px;
+        }
+
+        .password-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .password-strength {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.8em;
+        }
+
+        .strength-weak {
+            color: var(--danger-color);
+        }
+
+        .strength-medium {
+            color: var(--warning-color);
+        }
+
+        .strength-strong {
+            color: var(--success-color);
+        }
+
+        /* Auto Password Change Styles */
+        .auto-change-indicator {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            background: var(--secondary-color);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+            border: 1px solid var(--warning-color);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .auto-change-indicator.show {
+            opacity: 1;
+        }
+
+        .auto-change-active {
+            color: var(--warning-color);
+        }
+
+        .password-timer {
+            display: inline-block;
+            background: #333;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 5px;
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .time-options {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .time-option {
+            background: #333;
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .time-option:hover {
+            background: #444;
+            border-color: var(--primary-color);
+        }
+
+        .time-option.selected {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: var(--background-color);
+        }
+
+        .time-option .time-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .time-option .time-label {
+            font-size: 0.8em;
+            color: var(--text-secondary);
+        }
+
+        .time-option.selected .time-label {
+            color: var(--background-color);
+        }
+
+        .current-settings {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid var(--primary-color);
+        }
+
+        .settings-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .settings-label {
+            color: var(--text-secondary);
+            font-weight: bold;
+        }
+
+        .settings-value {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        @media (max-width: 480px) {
+            .password-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .auto-change-indicator {
+                top: 120px;
+                right: 10px;
+                font-size: 0.7em;
+            }
+
+            .time-options {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .time-option {
+                width: 100%;
+                max-width: 200px;
+            }
+
+            .header-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .header-btn {
+                width: 100%;
+                max-width: 250px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>VIP Admin</h1>
+            
+            <!-- Auto Save Indicator -->
+            <div id="autoSaveIndicator" class="auto-save-indicator">
+                <i class="fas fa-cloud"></i>
+                <span>Auto-saving...</span>
+            </div>
+            
+            <!-- Auto Password Change Indicator -->
+            <div id="autoChangeIndicator" class="auto-change-indicator">
+                <i class="fas fa-sync-alt"></i>
+                <span>Next change in: <span id="changeTimer" class="password-timer">60</span>s</span>
+            </div>
+            
+            <!-- New Header Buttons -->
+            <div class="header-buttons">
+                <button class="header-btn add-user" onclick="showAddUserModal()">
+                    <i class="fas fa-user-plus"></i> Add User
+                </button>
+                <button class="header-btn add-user" onclick="showJSONModal()">
+                    <i class="fas fa-code"></i> JSON
+                </button>
+                <button class="header-btn system" onclick="forceSaveToFirebase()">
+                    <i class="fas fa-sync-alt"></i> Save to Firebase
+                </button>
+                <!-- SEPARATE: Timing Settings Button -->
+                <button class="header-btn settings" onclick="showAutoChangeSettings()">
+                    <i class="fas fa-cog"></i> Timing Settings
+                </button>
+                <!-- SEPARATE: Auto Change On/Off Button -->
+                <button class="header-btn auto-off" id="autoChangeToggle" onclick="toggleAutoPasswordChange()">
+                    <i class="fas fa-power-off"></i> Auto Change: OFF
+                </button>
+            </div>
+        </header>
+        
+        <!-- User List Section -->
+        <div class="content-tab">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div style="display: flex; gap: 10px;">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Search by username..." oninput="filterUsers()">
+                    </div>
+                </div>
+            </div>
+
+            <div id="usersList">
+                <div class="empty-state">
+                    <i class="fas fa-users"></i>
+                    <h3>No VIP Users Yet</h3>
+                    <p>Add your first VIP user to get started</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JSON Modal -->
+    <div id="jsonModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="json-header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div class="find-container">
+                        <input type="text" id="findInput" class="find-input" placeholder="Json Find...">
+                        <div class="find-buttons">
+                            <button class="find-btn" id="findPrevBtn">
+                                <i class="fas fa-arrow-up"></i>
+                            </button>
+                            <button class="find-btn" id="findNextBtn">
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <span class="close" onclick="closeJSONModal()">&times;</span>
+                </div>
+            </div>
+            <div class="json-preview" id="jsonPreview" contenteditable="true"></div>
+            <div style="text-align: center; margin-top: 15px;">
+                <button class="btn-primary" onclick="copyJSON()">
+                    <i class="fas fa-copy"></i> Copy JSON
+                </button>
+                <button class="btn-primary" onclick="saveJSON()">
+                    <i class="fas fa-save"></i> Save JSON
+                </button>
+                <button class="btn-primary" onclick="downloadJSON()">
+                    <i class="fas fa-download"></i> Download JSON
+                </button>
+                <!-- CHANGED: Load from Firebase button converted to Delete All JSON button -->
+                <button class="btn-danger" onclick="deleteAllJSON()">
+                    <i class="fas fa-trash-alt"></i> Delete All JSON
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0;"><i class="fas fa-edit"></i> Edit VIP User</h2>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <div id="editForm">
+                <!-- Edit form will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0;"><i class="fas fa-user-plus"></i> Add New VIP User</h2>
+                <span class="close" onclick="closeAddUserModal()">&times;</span>
+            </div>
+            <div class="form-group">
+                <label for="newUsername">Username</label>
+                <input type="text" id="newUsername" placeholder="Enter RBL_Admin_1">
+            </div>
+            <div class="form-group">
+                <label for="newPassword">Password</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="newPassword" minlength="08" maxlength="08" inputmode="numeric" placeholder="Enter password" required style="flex: 1;">
+                    <button class="btn-primary" onclick="generatePassword()" style="white-space: nowrap;">
+                        <i class="fas fa-key"></i> Generate
+                    </button>
+                </div>
+            </div>
+            <!-- REMOVED: User Status input completely removed -->
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn-primary" onclick="addNewUser()">
+                    <i class="fas fa-plus"></i> Add VIP User
+                </button>
+                <button class="btn-danger" onclick="closeAddUserModal()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Generator Modal -->
+    <div id="passwordGeneratorModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0;"><i class="fas fa-key"></i> Password Generator</h2>
+                <span class="close" onclick="closePasswordGeneratorModal()">&times;</span>
+            </div>
+            <div class="password-generator">
+                <div class="password-options">
+                    <div class="password-option">
+                        <input type="checkbox" id="useNumbers" checked>
+                        <label for="useNumbers">Numbers (0-9)</label>
+                    </div>
+                    <div class="password-option">
+                        <input type="checkbox" id="useUppercase">
+                        <label for="useUppercase">Uppercase (A-Z)</label>
+                    </div>
+                    <div class="password-option">
+                        <input type="checkbox" id="useLowercase">
+                        <label for="useLowercase">Lowercase (a-z)</label>
+                    </div>
+                    <div class="password-option">
+                        <input type="checkbox" id="useSymbols">
+                        <label for="useSymbols">Symbols (!@#$%)</label>
+                    </div>
+                </div>
+                <div class="password-preview" id="generatedPassword">
+                    Click Generate
+                </div>
+                <div class="password-strength" id="passwordStrength">
+                    <!-- Password strength will be displayed here -->
+                </div>
+                <div class="password-actions">
+                    <button class="btn-primary" onclick="generateCustomPassword()">
+                        <i class="fas fa-sync"></i> Generate
+                    </button>
+                    <button class="btn-primary" onclick="useGeneratedPassword()">
+                        <i class="fas fa-check"></i> Use This
+                    </button>
+                    <button class="btn-primary" onclick="copyGeneratedPassword()">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto Change Settings Modal -->
+    <div id="autoChangeSettingsModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0;"><i class="fas fa-clock"></i> Auto Password Change Settings</h2>
+                <span class="close" onclick="closeAutoChangeSettings()">&times;</span>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+                <p style="color: var(--text-secondary);">Select the time interval for automatic password changes:</p>
+                
+                <div class="time-options">
+                    <div class="time-option" onclick="selectTimeOption(60, '1 minute')">
+                        <div class="time-value">1 Minute</div>
+                        <div class="time-label">60 seconds</div>
+                    </div>
+                    <div class="time-option" onclick="selectTimeOption(300, '5 minutes')">
+                        <div class="time-value">5 Minutes</div>
+                        <div class="time-label">300 seconds</div>
+                    </div>
+                    <div class="time-option" onclick="selectTimeOption(43200, '12 hours')">
+                        <div class="time-value">12 Hours</div>
+                        <div class="time-label">43,200 seconds</div>
+                    </div>
+                    <div class="time-option" onclick="selectTimeOption(86400, '24 hours')">
+                        <div class="time-value">24 Hours</div>
+                        <div class="time-label">86,400 seconds</div>
+                    </div>
+                </div>
+                
+                <div class="current-settings">
+                    <div class="settings-info">
+                        <span class="settings-label">Current Timing:</span>
+                        <span class="settings-value" id="currentTimingDisplay">Not set</span>
+                    </div>
+                    <div class="settings-info">
+                        <span class="settings-label">Auto Change Status:</span>
+                        <span class="settings-value" id="currentStatusDisplay">OFF</span>
+                    </div>
+                    <div class="settings-info">
+                        <span class="settings-label">Last Password Change:</span>
+                        <span class="settings-value" id="lastChangeDisplay">Never</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn-primary" onclick="saveAutoChangeSettings()" style="padding: 12px 25px;">
+                    <i class="fas fa-save"></i> Save Timing Settings
+                </button>
+                <button class="btn-danger" onclick="closeAutoChangeSettings()" style="padding: 12px 25px;">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete All JSON Confirmation Modal -->
+    <div id="deleteAllJSONModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0; color: var(--danger-color);"><i class="fas fa-exclamation-triangle"></i> Delete All JSON</h2>
+                <span class="close" onclick="closeDeleteAllJSONModal()">&times;</span>
+            </div>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <i class="fas fa-trash-alt" style="font-size: 3em; color: var(--danger-color); margin-bottom: 15px;"></i>
+                <h3 style="margin: 10px 0; color: var(--text-color);">Are you sure?</h3>
+                <p style="color: var(--text-secondary);">This action will permanently delete all JSON data from Firebase. This cannot be undone!</p>
+                <div style="background: #1e1e1e; padding: 15px; border-radius: 6px; margin: 15px 0; text-align: left;">
+                    <p style="margin: 0; color: var(--text-secondary);"><strong>Warning:</strong> This will delete:</p>
+                    <ul style="margin: 10px 0; padding-left: 20px; color: var(--text-secondary);">
+                        <li>All VIP users</li>
+                        <li>All passwords</li>
+                        <li>All configuration data</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn-danger" onclick="confirmDeleteAllJSON()" style="padding: 12px 25px;">
+                    <i class="fas fa-trash-alt"></i> Yes, Delete All Data
+                </button>
+                <button class="btn-primary" onclick="closeDeleteAllJSONModal()" style="padding: 12px 25px;">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            databaseURL: "https://test-62d94-default-rtdb.firebaseio.com/"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Global state - Updated to match your JSON structure
+        let configData = {
+            "Password_List": {
+                "VIP_USER": "112233"
+            }
+        };
+
+        let users = [];
+        let editingUsername = null;
+        let userAutoSaveTimeout = null;
+        let firebaseAutoSaveTimeout = null;
+        let isSavingToFirebase = false;
+        
+        // Auto Password Change Variables - FIXED FOR AUTO OFF
+        let isAutoPasswordChangeEnabled = false;
+        let passwordChangeInterval = null;
+        let passwordChangeTimer = 60; // Default 1 minute in seconds
+        let currentTimer = 60;
+        let selectedTimeOption = null;
+        let selectedTimeLabel = '';
+        let lastPasswordChange = null;
+        
+        // JSON Find Feature Variables
+        let searchTerm = '';
+        let searchResults = [];
+        let currentResultIndex = -1;
+
+        // Utility Functions
+        const $ = id => document.getElementById(id);
+
+        function showToast(message, duration = 3000) {
+            const toast = $('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
+
+        function showAutoSaveIndicator(status) {
+            const indicator = $('autoSaveIndicator');
+            const icon = indicator.querySelector('i');
+            const text = indicator.querySelector('span');
+            
+            indicator.classList.add('show');
+            
+            if (status === 'saving') {
+                indicator.classList.add('auto-save-saving');
+                indicator.classList.remove('auto-save-saved');
+                icon.className = 'fas fa-cloud-upload-alt';
+                text.textContent = 'Auto-saving...';
+            } else if (status === 'saved') {
+                indicator.classList.remove('auto-save-saving');
+                indicator.classList.add('auto-save-saved');
+                icon.className = 'fas fa-cloud-check';
+                text.textContent = 'Auto-saved to Firebase';
+                
+                // Hide after 2 seconds
+                setTimeout(() => {
+                    indicator.classList.remove('show');
+                }, 2000);
+            }
+        }
+
+        // Firebase Auto Change Settings Functions
+        function saveAutoChangeSettingsToFirebase() {
+            const settings = {
+                timer: passwordChangeTimer,
+                label: selectedTimeLabel,
+                enabled: isAutoPasswordChangeEnabled,
+                lastChange: lastPasswordChange
+            };
+            
+            database.ref('/auto_change_settings').set(settings)
+                .then(() => {
+                    console.log('Auto change settings saved to Firebase');
+                })
+                .catch((error) => {
+                    console.error('Error saving auto change settings:', error);
+                });
+        }
+
+        function loadAutoChangeSettingsFromFirebase() {
+            database.ref('/auto_change_settings').once('value')
+                .then((snapshot) => {
+                    const settings = snapshot.val();
+                    if (settings) {
+                        // Load settings from Firebase
+                        passwordChangeTimer = settings.timer || 60;
+                        selectedTimeOption = settings.timer || 60;
+                        selectedTimeLabel = settings.label || '1 minute';
+                        isAutoPasswordChangeEnabled = settings.enabled || false;
+                        lastPasswordChange = settings.lastChange || null;
+                        
+                        // Update UI
+                        updateAutoChangeButton();
+                        updateSettingsDisplay();
+                        
+                        // If auto change was enabled, start it
+                        if (isAutoPasswordChangeEnabled) {
+                            startPasswordChangeTimer();
+                            showToast('Auto password change restored from previous session', 2000);
+                        }
+                        
+                        console.log('Auto change settings loaded from Firebase');
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error loading auto change settings:', error);
+                });
+        }
+
+        // Auto Password Change Functions - FIXED FOR AUTO OFF
+        function showAutoChangeSettings() {
+            $('autoChangeSettingsModal').style.display = 'flex';
+            
+            // Update current settings display
+            updateSettingsDisplay();
+            
+            // Remove selected class from all options
+            document.querySelectorAll('.time-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Select current option if available
+            if (selectedTimeOption) {
+                document.querySelectorAll('.time-option').forEach(option => {
+                    const timeValue = option.querySelector('.time-value').textContent;
+                    if (timeValue.includes(selectedTimeLabel.split(' ')[0])) {
+                        option.classList.add('selected');
+                    }
+                });
+            }
+        }
+
+        function closeAutoChangeSettings() {
+            $('autoChangeSettingsModal').style.display = 'none';
+        }
+
+        function updateSettingsDisplay() {
+            const timingDisplay = $('currentTimingDisplay');
+            const statusDisplay = $('currentStatusDisplay');
+            const lastChangeDisplay = $('lastChangeDisplay');
+            
+            if (selectedTimeLabel) {
+                timingDisplay.textContent = selectedTimeLabel;
+            } else {
+                timingDisplay.textContent = 'Not set';
+            }
+            
+            statusDisplay.textContent = isAutoPasswordChangeEnabled ? 'ON' : 'OFF';
+            statusDisplay.style.color = isAutoPasswordChangeEnabled ? 'var(--success-color)' : 'var(--danger-color)';
+            
+            if (lastPasswordChange) {
+                lastChangeDisplay.textContent = new Date(lastPasswordChange).toLocaleString();
+            } else {
+                lastChangeDisplay.textContent = 'Never';
+            }
+        }
+
+        function selectTimeOption(seconds, label) {
+            selectedTimeOption = seconds;
+            selectedTimeLabel = label;
+            
+            // Update UI
+            document.querySelectorAll('.time-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            // Update settings display
+            updateSettingsDisplay();
+        }
+
+        function saveAutoChangeSettings() {
+            if (!selectedTimeOption) {
+                showToast('Please select a time interval', 2000);
+                return;
+            }
+
+            passwordChangeTimer = selectedTimeOption;
+            currentTimer = selectedTimeOption;
+            
+            // Save to Firebase
+            saveAutoChangeSettingsToFirebase();
+            
+            closeAutoChangeSettings();
+            showToast(`Auto change timing set to ${selectedTimeLabel}`, 2000);
+            
+            // Update the on/off button to show current timing
+            updateAutoChangeButton();
+        }
+
+        function updateAutoChangeButton() {
+            const toggleBtn = $('autoChangeToggle');
+            const indicator = $('autoChangeIndicator');
+            
+            if (selectedTimeLabel) {
+                if (isAutoPasswordChangeEnabled) {
+                    toggleBtn.innerHTML = `<i class="fas fa-power-off"></i> Auto Change: ON (${selectedTimeLabel})`;
+                    toggleBtn.className = 'header-btn auto-on';
+                    indicator.classList.add('show', 'auto-change-active');
+                } else {
+                    toggleBtn.innerHTML = `<i class="fas fa-power-off"></i> Auto Change: OFF (${selectedTimeLabel})`;
+                    toggleBtn.className = 'header-btn auto-off';
+                    indicator.classList.remove('show');
+                }
+            } else {
+                toggleBtn.innerHTML = '<i class="fas fa-power-off"></i> Auto Change: OFF';
+                toggleBtn.className = 'header-btn auto-off';
+            }
+        }
+
+        function toggleAutoPasswordChange() {
+            if (!selectedTimeOption) {
+                showToast('Please set timing first using Timing Settings', 2000);
+                showAutoChangeSettings();
+                return;
+            }
+
+            isAutoPasswordChangeEnabled = !isAutoPasswordChangeEnabled;
+            
+            if (isAutoPasswordChangeEnabled) {
+                // Start auto password change
+                startPasswordChangeTimer();
+                showToast(`Auto password change started - Changing in ${selectedTimeLabel}`, 3000);
+            } else {
+                // Stop auto password change
+                stopPasswordChangeTimer();
+                showToast('Auto password change stopped', 2000);
+            }
+            
+            // Save to Firebase
+            saveAutoChangeSettingsToFirebase();
+            
+            // Update UI
+            updateAutoChangeButton();
+            updateSettingsDisplay();
+        }
+
+        function startPasswordChangeTimer() {
+            currentTimer = passwordChangeTimer;
+            updateTimerDisplay();
+            
+            passwordChangeInterval = setInterval(() => {
+                currentTimer--;
+                updateTimerDisplay();
+                
+                if (currentTimer <= 0) {
+                    changeAllPasswords();
+                    
+                    // FIXED: Automatically turn off after password change
+                    isAutoPasswordChangeEnabled = false;
+                    stopPasswordChangeTimer();
+                    
+                    // Save to Firebase
+                    saveAutoChangeSettingsToFirebase();
+                    
+                    // Update UI
+                    updateAutoChangeButton();
+                    updateSettingsDisplay();
+                    
+                    showToast('Auto password change completed! Auto Change turned OFF.', 4000);
+                }
+            }, 1000);
+        }
+
+        function stopPasswordChangeTimer() {
+            if (passwordChangeInterval) {
+                clearInterval(passwordChangeInterval);
+                passwordChangeInterval = null;
+            }
+        }
+
+        function updateTimerDisplay() {
+            const timerElement = $('changeTimer');
+            if (timerElement) {
+                // Convert seconds to appropriate format
+                let displayTime;
+                if (currentTimer < 60) {
+                    displayTime = `${currentTimer}s`;
+                } else if (currentTimer < 3600) {
+                    displayTime = `${Math.floor(currentTimer / 60)}m ${currentTimer % 60}s`;
+                } else {
+                    const hours = Math.floor(currentTimer / 3600);
+                    const minutes = Math.floor((currentTimer % 3600) / 60);
+                    const seconds = currentTimer % 60;
+                    displayTime = `${hours}h ${minutes}m ${seconds}s`;
+                }
+                
+                timerElement.textContent = displayTime;
+                
+                // Change color based on time remaining
+                if (currentTimer <= 10) {
+                    timerElement.style.color = 'var(--danger-color)';
+                    timerElement.style.animation = 'pulse 1s infinite';
+                } else if (currentTimer <= 30) {
+                    timerElement.style.color = 'var(--warning-color)';
+                    timerElement.style.animation = 'none';
+                } else {
+                    timerElement.style.color = 'var(--success-color)';
+                    timerElement.style.animation = 'none';
+                }
+            }
+        }
+
+        function changeAllPasswords() {
+            if (users.length === 0) {
+                showToast('No users to update passwords for', 2000);
+                return;
+            }
+
+            let changedCount = 0;
+            
+            // Generate new passwords for all users
+            users.forEach(user => {
+                const newPassword = generateRandomPassword();
+                configData.Password_List[user.username] = newPassword;
+                changedCount++;
+            });
+            
+            // Update last password change time
+            lastPasswordChange = new Date().toISOString();
+            
+            // Update users array
+            updateUsersArray();
+            
+            // Update UI
+            renderUsersList();
+            
+            // Save to Firebase
+            saveAutoChangeSettingsToFirebase();
+            autoSaveToFirebase();
+            
+            showToast(`Auto-changed passwords for ${changedCount} users`, 2000);
+        }
+
+        function generateRandomPassword() {
+            // Generate a random 8-digit number
+            return Math.floor(10000000 + Math.random() * 90000000).toString();
+        }
+
+        // Auto-save to Firebase function
+        function autoSaveToFirebase() {
+            if (isSavingToFirebase) return;
+            
+            clearTimeout(firebaseAutoSaveTimeout);
+            firebaseAutoSaveTimeout = setTimeout(() => {
+                saveToFirebase(true); // true indicates it's an auto-save
+            }, 1000); // 1 second delay after changes
+        }
+
+        // Modal functions
+        function showJSONModal() {
+            updateJSONPreview();
+            $('jsonModal').style.display = 'flex';
+            
+            // Clear any previous search
+            clearSearchHighlights();
+            $('findInput').value = '';
+            searchTerm = '';
+            searchResults = [];
+            currentResultIndex = -1;
+            updateFindButtons();
+        }
+
+        function closeJSONModal() {
+            $('jsonModal').style.display = 'none';
+        }
+
+        function showEditModal(username) {
+            editingUsername = username;
+            const user = getUserByUsername(username);
+            
+            if (!user) return;
+            
+            $('editForm').innerHTML = `
+                <div class="form-group">
+                    <label for="editUsername">Username</label>
+                    <input type="text" id="editUsername" value="${user.username}" oninput="onUserFieldChange()">
+                </div>
+                <div class="form-group">
+                    <label for="editPassword">Password</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" minlength="08" maxlength="08" inputmode="numeric" id="editPassword" value="${user.password}" oninput="onUserFieldChange()" style="flex: 1;">
+                        <button class="btn-primary" onclick="generatePasswordForEdit()" style="white-space: nowrap;">
+                            <i class="fas fa-key"></i> Generate
+                        </button>
+                    </div>
+                    <div style="color: var(--text-secondary); font-size: 0.8em; margin-top: 5px;">
+                        <i class="fas fa-info-circle"></i> Changes auto-save to Firebase
+                    </div>
+                </div>
+                <!-- REMOVED: User Status input completely removed from edit form -->
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn-primary" onclick="saveAllChanges()">
+                        <i class="fas fa-save"></i> Save All Changes
+                    </button>
+                    <button class="btn-danger" onclick="closeEditModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            `;
+            
+            $('editModal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            $('editModal').style.display = 'none';
+            editingUsername = null;
+        }
+
+        // New Modal Functions
+        function showAddUserModal() {
+            $('addUserModal').style.display = 'flex';
+        }
+
+        function closeAddUserModal() {
+            $('addUserModal').style.display = 'none';
+        }
+
+        // Password Generator Modal Functions
+        function showPasswordGeneratorModal() {
+            $('passwordGeneratorModal').style.display = 'flex';
+            // Generate an initial password when the modal opens
+            generateCustomPassword();
+        }
+
+        function closePasswordGeneratorModal() {
+            $('passwordGeneratorModal').style.display = 'none';
+        }
+
+        // Delete All JSON Modal Functions
+        function deleteAllJSON() {
+            $('deleteAllJSONModal').style.display = 'flex';
+        }
+
+        function closeDeleteAllJSONModal() {
+            $('deleteAllJSONModal').style.display = 'none';
+        }
+
+        function confirmDeleteAllJSON() {
+            $('loading').style.display = 'flex';
+            
+            // Delete all data from Firebase including auto change settings
+            database.ref('/').remove()
+                .then(() => {
+                    // Reset local data
+                    configData = {
+                        "Password_List": {}
+                    };
+                    
+                    // Reset auto change settings
+                    isAutoPasswordChangeEnabled = false;
+                    selectedTimeOption = null;
+                    selectedTimeLabel = '';
+                    lastPasswordChange = null;
+                    stopPasswordChangeTimer();
+                    
+                    // Update users array
+                    updateUsersArray();
+                    
+                    // Update UI
+                    renderUsersList();
+                    updateJSONPreview();
+                    updateAutoChangeButton();
+                    updateSettingsDisplay();
+                    
+                    showToast('All JSON data deleted successfully from Firebase!', 3000);
+                    closeDeleteAllJSONModal();
+                })
+                .catch((error) => {
+                    console.error('Error deleting data from Firebase:', error);
+                    showToast('Error deleting data: ' + error.message, 3000);
+                })
+                .finally(() => {
+                    $('loading').style.display = 'none';
+                });
+        }
+
+        function onUserFieldChange() {
+            // Show saving status
+            showUserSavingStatus(editingUsername);
+            
+            // Auto-save user after 1 second of no changes
+            clearTimeout(userAutoSaveTimeout);
+            userAutoSaveTimeout = setTimeout(() => {
+                saveUserOnly();
+            }, 1000);
+            
+            // Trigger auto-save to Firebase
+            autoSaveToFirebase();
+        }
+
+        function showUserSavingStatus(username) {
+            const userElement = document.querySelector(`[data-username="${username}"]`);
+            if (userElement) {
+                const statusElement = userElement.querySelector('.user-save-status');
+                if (statusElement) {
+                    statusElement.textContent = 'Saving...';
+                    statusElement.className = 'user-save-status user-saving';
+                }
+            }
+        }
+
+        function showUserSavedStatus(username) {
+            const userElement = document.querySelector(`[data-username="${username}"]`);
+            if (userElement) {
+                const statusElement = userElement.querySelector('.user-save-status');
+                if (statusElement) {
+                    statusElement.textContent = 'Saved';
+                    statusElement.className = 'user-save-status user-saved';
+                    
+                    // Hide after 2 seconds
+                    setTimeout(() => {
+                        statusElement.className = 'user-save-status';
+                    }, 2000);
+                }
+            }
+        }
+
+        // Password Generation Functions
+        function generatePassword() {
+            // Generate a random 8-digit number
+            const randomPassword = Math.floor(10000000 + Math.random() * 90000000).toString();
+            $('newPassword').value = randomPassword;
+        }
+
+        function generatePasswordForEdit() {
+            // Generate a random 8-digit number for the edit form
+            const randomPassword = Math.floor(10000000 + Math.random() * 90000000).toString();
+            $('editPassword').value = randomPassword;
+            onUserFieldChange(); // Trigger auto-save
+        }
+
+        function generateCustomPassword() {
+            const useNumbers = $('useNumbers').checked;
+            const useUppercase = $('useUppercase').checked;
+            const useLowercase = $('useLowercase').checked;
+            const useSymbols = $('useSymbols').checked;
+            
+            // If no character types are selected, default to numbers only
+            if (!useNumbers && !useUppercase && !useLowercase && !useSymbols) {
+                $('useNumbers').checked = true;
+                return generateCustomPassword();
+            }
+            
+            let charset = '';
+            let password = '';
+            
+            // Build character set based on selected options
+            if (useNumbers) charset += '0123456789';
+            if (useUppercase) charset += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            if (useLowercase) charset += 'abcdefghijklmnopqrstuvwxyz';
+            if (useSymbols) charset += '!@#$%';
+            
+            // Generate password
+            for (let i = 0; i < 8; i++) {
+                const randomIndex = Math.floor(Math.random() * charset.length);
+                password += charset[randomIndex];
+            }
+            
+            // Display the generated password
+            $('generatedPassword').textContent = password;
+            
+            // Calculate and display password strength
+            updatePasswordStrength(password);
+        }
+
+        function updatePasswordStrength(password) {
+            let strength = 0;
+            const strengthElement = $('passwordStrength');
+            
+            // Check for different character types
+            if (password.match(/[a-z]/)) strength += 1;
+            if (password.match(/[A-Z]/)) strength += 1;
+            if (password.match(/[0-9]/)) strength += 1;
+            if (password.match(/[^a-zA-Z0-9]/)) strength += 1;
+            
+            // Update strength display
+            if (strength <= 1) {
+                strengthElement.textContent = 'Strength: Weak';
+                strengthElement.className = 'password-strength strength-weak';
+            } else if (strength === 2) {
+                strengthElement.textContent = 'Strength: Medium';
+                strengthElement.className = 'password-strength strength-medium';
+            } else {
+                strengthElement.textContent = 'Strength: Strong';
+                strengthElement.className = 'password-strength strength-strong';
+            }
+        }
+
+        function useGeneratedPassword() {
+            const generatedPassword = $('generatedPassword').textContent;
+            
+            // If we're in the add user modal, use it there
+            if ($('addUserModal').style.display === 'flex') {
+                $('newPassword').value = generatedPassword;
+            }
+            
+            // If we're in the edit modal, use it there
+            if ($('editModal').style.display === 'flex') {
+                $('editPassword').value = generatedPassword;
+                onUserFieldChange(); // Trigger auto-save
+            }
+            
+            closePasswordGeneratorModal();
+            showToast('Password applied successfully', 2000);
+        }
+
+        function copyGeneratedPassword() {
+            const generatedPassword = $('generatedPassword').textContent;
+            navigator.clipboard.writeText(generatedPassword).then(() => {
+                showToast('Password copied to clipboard', 1500);
+            });
+        }
+
+        function addNewUser() {
+            const username = $('newUsername').value.trim();
+            const password = $('newPassword').value.trim();
+
+            if (!username) {
+                showToast('Please enter a username', 2000);
+                return;
+            }
+
+            if (!password) {
+                showToast('Please enter a password', 2000);
+                return;
+            }
+
+            // Check for duplicate username
+            if (configData.Password_List && configData.Password_List[username]) {
+                showToast('Username already exists!', 2000);
+                return;
+            }
+
+            // Add user to configData
+            if (!configData.Password_List) {
+                configData.Password_List = {};
+            }
+            
+            configData.Password_List[username] = password;
+
+            // Update users array for UI
+            updateUsersArray();
+            renderUsersList();
+
+            // Auto-save to Firebase
+            autoSaveToFirebase();
+
+            // Close modal and show success message
+            closeAddUserModal();
+            showToast(`New VIP user "${username}" added successfully`, 2000);
+        }
+
+        function saveUserOnly() {
+            if (!editingUsername) return;
+
+            const username = $('editUsername').value.trim();
+            const password = $('editPassword').value.trim();
+
+            if (!username || !password) {
+                return;
+            }
+
+            // Get original user data
+            const originalUser = getUserByUsername(editingUsername);
+            if (!originalUser) return;
+
+            // Remove old user entry
+            delete configData.Password_List[editingUsername];
+
+            // Add updated user entry
+            configData.Password_List[username] = password;
+
+            // Update editing username
+            editingUsername = username;
+
+            updateUsersArray();
+            renderUsersList();
+            showUserSavedStatus(editingUsername);
+        }
+
+        function saveAllChanges() {
+            if (!editingUsername) return;
+
+            const username = $('editUsername').value.trim();
+            const password = $('editPassword').value.trim();
+
+            if (!username || !password) {
+                showToast('Please fill all fields', 2000);
+                return;
+            }
+
+            // Get original user data
+            const originalUser = getUserByUsername(editingUsername);
+            if (!originalUser) return;
+
+            // Check for duplicate username (excluding current one)
+            if (username !== editingUsername && configData.Password_List[username]) {
+                showToast('Username already exists!', 2000);
+                return;
+            }
+
+            // Remove old user entry
+            delete configData.Password_List[editingUsername];
+
+            // Add updated user entry
+            configData.Password_List[username] = password;
+
+            updateUsersArray();
+            renderUsersList();
+            closeEditModal();
+            showToast('All changes saved successfully', 2000);
+            
+            // Auto-save to Firebase
+            autoSaveToFirebase();
+        }
+
+        function deleteUser(username) {
+            if (confirm('Are you sure you want to delete this VIP user?')) {
+                const user = getUserByUsername(username);
+                if (user) {
+                    delete configData.Password_List[username];
+                    updateUsersArray();
+                    renderUsersList();
+                    showToast(`VIP user "${username}" deleted`, 2000);
+                    
+                    // Auto-save to Firebase
+                    autoSaveToFirebase();
+                }
+            }
+        }
+
+        function copyPassword(password) {
+            navigator.clipboard.writeText(password).then(() => {
+                showToast('Password copied to clipboard', 1500);
+            });
+        }
+
+        // Helper function to get user by username
+        function getUserByUsername(username) {
+            return users.find(u => u.username === username);
+        }
+
+        // Update users array from configData
+        function updateUsersArray() {
+            users = [];
+            
+            if (configData.Password_List) {
+                for (const username in configData.Password_List) {
+                    users.push({
+                        username: username,
+                        password: configData.Password_List[username]
+                    });
+                }
+            }
+        }
+
+        function renderUsersList() {
+            const list = $('usersList');
+            const searchTerm = $('searchInput').value.toLowerCase();
+            
+            let filteredUsers = users;
+            
+            // Apply search filter
+            if (searchTerm) {
+                filteredUsers = filteredUsers.filter(u => 
+                    u.username.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (filteredUsers.length === 0) {
+                let message = '';
+                if (searchTerm) {
+                    message = 'No users found with this username';
+                } else {
+                    message = 'Add your first VIP user to get started';
+                }
+                
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>No Users Found</h3>
+                        <p>${message}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = filteredUsers.map(user => {
+                return `
+                    <div class="user-item" data-username="${user.username}">
+                        <div class="user-save-status"></div>
+                        <div class="user-header">
+                            <div class="user-info">
+                                <strong>${user.username}</strong>
+                                <div style="color: var(--text-secondary); font-size: 0.9em; margin-top: 5px;">
+                                    <div>Password: <span class="password-display">${user.password}</span></div>
+                                    <div style="font-size: 0.8em; color: #666;">
+                                        Last Updated: ${new Date().toLocaleDateString()}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="user-actions">
+                                <button class="action-btn copy-btn" onclick="copyPassword('${user.password}')" title="Copy Password">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button class="action-btn edit-btn" onclick="showEditModal('${user.username}')" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn" onclick="deleteUser('${user.username}')" title="Delete">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterUsers() {
+            renderUsersList();
+        }
+
+        function updateJSONPreview() {
+            $('jsonPreview').textContent = JSON.stringify(configData, null, 2);
+        }
+
+        function copyJSON() {
+            navigator.clipboard.writeText(JSON.stringify(configData, null, 2)).then(() => {
+                showToast('JSON copied to clipboard', 2000);
+            });
+        }
+
+        // NEW FUNCTION: Save edited JSON
+        function saveJSON() {
+            try {
+                const editedJSON = $('jsonPreview').textContent;
+                const parsedData = JSON.parse(editedJSON);
+                
+                // Update the global configData
+                configData = parsedData;
+                
+                // Update users array
+                updateUsersArray();
+                
+                // Update UI
+                renderUsersList();
+                
+                // Auto-save to Firebase
+                autoSaveToFirebase();
+                
+                showToast('JSON saved successfully', 2000);
+            } catch (error) {
+                console.error('Error parsing JSON:', error);
+                showToast('Invalid JSON format: ' + error.message, 3000);
+            }
+        }
+
+        function downloadJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(configData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "vip_users_config.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast('JSON file downloaded', 2000);
+        }
+
+        // JSON Find Feature Functions
+        function performSearch() {
+            const findInput = $('findInput');
+            const newSearchTerm = findInput.value.trim();
+            
+            if (newSearchTerm === '') {
+                clearSearchHighlights();
+                searchTerm = '';
+                searchResults = [];
+                currentResultIndex = -1;
+                updateFindButtons();
+                return;
+            }
+            
+            if (newSearchTerm !== searchTerm) {
+                searchTerm = newSearchTerm;
+                searchResults = [];
+                currentResultIndex = -1;
+                
+                const jsonText = $('jsonPreview').textContent;
+                const regex = new RegExp(escapeRegExp(searchTerm), 'gi');
+                let match;
+                
+                while ((match = regex.exec(jsonText)) !== null) {
+                    searchResults.push({
+                        index: match.index,
+                        length: match[0].length
+                    });
+                }
+            }
+            
+            if (searchResults.length > 0) {
+                highlightSearchResults();
+                if (currentResultIndex === -1) {
+                    currentResultIndex = 0;
+                }
+                scrollToCurrentResult();
+            } else {
+                clearSearchHighlights();
+                showToast('No matches found', 2000);
+            }
+            
+            updateFindButtons();
+        }
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function highlightSearchResults() {
+            const jsonPreview = $('jsonPreview');
+            let html = jsonPreview.textContent;
+            
+            // Clear previous highlights
+            html = html.replace(/<span class="(highlight|current-highlight)">([^<]*)<\/span>/gi, '$2');
+            
+            // Add new highlights
+            searchResults.forEach((result, index) => {
+                const before = html.substring(0, result.index);
+                const match = html.substring(result.index, result.index + result.length);
+                const after = html.substring(result.index + result.length);
+                
+                const highlightClass = index === currentResultIndex ? 'current-highlight' : 'highlight';
+                html = before + `<span class="${highlightClass}">${match}</span>` + after;
+                
+                // Adjust indices for subsequent matches
+                for (let j = index + 1; j < searchResults.length; j++) {
+                    searchResults[j].index += `<span class="${highlightClass}">`.length + '</span>'.length;
+                }
+            });
+            
+            jsonPreview.innerHTML = html;
+        }
+
+        function clearSearchHighlights() {
+            const jsonPreview = $('jsonPreview');
+            const text = jsonPreview.textContent;
+            jsonPreview.textContent = text;
+        }
+
+        function scrollToCurrentResult() {
+            if (currentResultIndex >= 0 && currentResultIndex < searchResults.length) {
+                const highlights = $('jsonPreview').querySelectorAll('.highlight, .current-highlight');
+                if (highlights.length > currentResultIndex) {
+                    const currentHighlight = highlights[currentResultIndex];
+                    currentHighlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
+
+        function findNext() {
+            if (searchResults.length === 0) {
+                performSearch();
+                return;
+            }
+            
+            currentResultIndex = (currentResultIndex + 1) % searchResults.length;
+            highlightSearchResults();
+            scrollToCurrentResult();
+            updateFindButtons();
+        }
+
+        function findPrev() {
+            if (searchResults.length === 0) {
+                performSearch();
+                return;
+            }
+            
+            currentResultIndex = (currentResultIndex - 1 + searchResults.length) % searchResults.length;
+            highlightSearchResults();
+            scrollToCurrentResult();
+            updateFindButtons();
+        }
+
+        function updateFindButtons() {
+            const prevBtn = $('findPrevBtn');
+            const nextBtn = $('findNextBtn');
+            
+            if (searchResults.length === 0) {
+                prevBtn.disabled = true;
+                nextBtn.disabled = true;
+            } else {
+                prevBtn.disabled = false;
+                nextBtn.disabled = false;
+            }
+        }
+
+        // Firebase Functions
+        function saveToFirebase(isAutoSave = false) {
+            if (isSavingToFirebase) return;
+            
+            isSavingToFirebase = true;
+            
+            if (!isAutoSave) {
+                $('loading').style.display = 'flex';
+            }
+            
+            showAutoSaveIndicator('saving');
+            
+            updateJSONPreview();
+            
+            database.ref('/').set(configData)
+                .then(() => {
+                    if (!isAutoSave) {
+                        showToast('All data saved successfully to Firebase!', 2000);
+                    }
+                    showAutoSaveIndicator('saved');
+                })
+                .catch((error) => {
+                    console.error('Error saving to Firebase:', error);
+                    if (!isAutoSave) {
+                        showToast('Error saving data: ' + error.message, 3000);
+                    } else {
+                        showToast('Auto-save failed: ' + error.message, 3000);
+                    }
+                })
+                .finally(() => {
+                    isSavingToFirebase = false;
+                    if (!isAutoSave) {
+                        $('loading').style.display = 'none';
+                    }
+                });
+        }
+
+        function forceSaveToFirebase() {
+            saveToFirebase(false);
+        }
+
+        function loadFromFirebase() {
+            $('loading').style.display = 'flex';
+            
+            database.ref('/').once('value')
+                .then((snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        configData = data;
+                        
+                        // Update users array
+                        updateUsersArray();
+                        
+                        renderUsersList();
+                        updateJSONPreview();
+                        
+                        showToast('Data loaded successfully from Firebase!', 2000);
+                    } else {
+                        showToast('No data found in Firebase', 2000);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error loading from Firebase:', error);
+                    showToast('Error loading data: ' + error.message, 3000);
+                })
+                .finally(() => {
+                    $('loading').style.display = 'none';
+                });
+        }
+
+        // Modal functionality
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Update users array from initial configData
+            updateUsersArray();
+            
+            renderUsersList();
+            
+            // Try to load from Firebase on startup
+            loadFromFirebase();
+            
+            // Load auto change settings from Firebase
+            loadAutoChangeSettingsFromFirebase();
+            
+            // Set up JSON find feature event listeners
+            $('findInput').addEventListener('input', performSearch);
+            $('findInput').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    findNext();
+                }
+            });
+            $('findPrevBtn').addEventListener('click', findPrev);
+            $('findNextBtn').addEventListener('click', findNext);
+            
+            // Add CSS animation for timer pulse
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes pulse {
+                    0% { opacity: 1; }
+                    50% { opacity: 0.5; }
+                    100% { opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+</body>
+</html>
