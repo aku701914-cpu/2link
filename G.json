@@ -1,0 +1,8 @@
+{
+  "show_notification": true,
+  "title": "New Update Available!",
+  "message": "We have added a new login page design.",
+  "image_link": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/768px-Google_%22G%22_logo.svg.png",
+  "code": "<html><body style='background-color:black; color:white;'><h1>Hello User!</h1><p>This is the new update code.</p><button>Click Me</button></body></html>"
+}
+
